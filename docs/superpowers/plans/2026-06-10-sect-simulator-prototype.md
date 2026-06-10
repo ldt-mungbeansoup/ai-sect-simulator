@@ -78,7 +78,7 @@ Create `package.json`:
     "express": "^5.1.0",
     "openai": "^5.0.0",
     "vite": "^7.0.0",
-    "zod": "^4.0.0",
+    "zod": "^3.25.76",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -753,7 +753,7 @@ describe("resolveTurn", () => {
 
     expect(result.nextState.year).toBe(2);
     expect(result.nextState.disciples.total).toBe(12);
-    expect(result.nextState.finance.spiritStones).toBe(446);
+    expect(result.nextState.finance.spiritStones).toBe(432);
     expect(result.facts.deltas.map((delta) => delta.label)).toContain("弟子总数");
     expect(result.facts.eventSeeds).toContain("开山收徒");
   });

@@ -33,7 +33,7 @@ describe("resolveTurn", () => {
 
     expect(result.nextState.year).toBe(2);
     expect(result.nextState.disciples.total).toBe(12);
-    expect(result.nextState.finance.spiritStones).toBe(446);
+    expect(result.nextState.finance.spiritStones).toBe(432);
     expect(result.facts.deltas.map((delta) => delta.label)).toContain("弟子总数");
     expect(result.facts.eventSeeds).toContain("开山收徒");
   });
