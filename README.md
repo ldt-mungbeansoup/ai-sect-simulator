@@ -12,6 +12,18 @@ npm run dev
 
 打开 `http://127.0.0.1:8787`。
 
+默认联网 AI 配置使用 DeepSeek：
+
+```bash
+AI_PROVIDER=deepseek
+DEEPSEEK_API_KEY=
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-pro
+OPENAI_MODEL=deepseek-v4-pro
+```
+
+在本地 `.env` 中填入 `DEEPSEEK_API_KEY` 后即可测试真实联网 AI。不要把 `.env` 提交到仓库。
+
 ## 测试模式
 
 没有 AI Key 时，可以用测试模式验证界面和规则闭环：
@@ -32,4 +44,4 @@ npm run build
 
 ## 密钥安全
 
-`OPENAI_API_KEY` 只允许保存在 `.env` 或部署平台密钥配置中。前端代码、提交历史、年报文本和调试输出都不得包含 API Key。
+`DEEPSEEK_API_KEY` 或 `OPENAI_API_KEY` 只允许保存在 `.env` 或部署平台密钥配置中。前端代码、提交历史、年报文本和调试输出都不得包含 API Key。

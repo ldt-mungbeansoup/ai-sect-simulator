@@ -47,9 +47,9 @@ app.post("/api/turn", async (req, res) => {
     res.json({ state: nextState, facts: resolved.facts, report });
   } catch (error) {
     const message = error instanceof Error ? error.message : "未知错误";
-    res.status(message.includes("OPENAI_API_KEY") ? 503 : 500).json({
-      error: message.includes("OPENAI_API_KEY")
-        ? "缺少服务端 OPENAI_API_KEY，无法进行联网 AI 试玩。"
+    res.status(message.includes("AI API key") ? 503 : 500).json({
+      error: message.includes("AI API key")
+        ? "缺少服务端 DEEPSEEK_API_KEY 或 OPENAI_API_KEY，无法进行联网 AI 试玩。"
         : `本回合演算失败：${message}`
     });
   }
