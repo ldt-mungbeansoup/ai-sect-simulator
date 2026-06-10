@@ -29,6 +29,17 @@ function parseJsonContent(content: string | null | undefined) {
   return JSON.parse(content) as unknown;
 }
 
+function normalizeParsedDecree(value: unknown) {
+  const draft = { ...(value as Record<string, unknown>) };
+  if (typeof draft.intensity === "string") {
+    draft.intensity = Number(draft.intensity);
+  }
+  if (typeof draft.summary !== "string" || draft.summary.trim().length === 0) {
+    draft.summary = `执事长老将谕令理解为${String(draft.axis ?? "宗门")}·${String(draft.stance ?? "施策")}。`;
+  }
+  return draft;
+}
+
 async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<ParsedDecree> {
   const response = await client.chat.completions.create({
     model: process.env.DEEPSEEK_MODEL || process.env.OPENAI_MODEL || "deepseek-v4-pro",
@@ -40,7 +51,7 @@ async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<
     max_tokens: 800
   });
 
-  return ParsedDecreeSchema.parse(parseJsonContent(response.choices[0]?.message?.content));
+  return ParsedDecreeSchema.parse(normalizeParsedDecree(parseJsonContent(response.choices[0]?.message?.content)));
 }
 
 async function draftReportWithDeepSeek(client: OpenAI, facts: TurnFacts): Promise<ReportDraftOutput> {

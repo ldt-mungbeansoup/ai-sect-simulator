@@ -8,6 +8,8 @@ stance 必须从对应方向的隐藏姿态中选择：
 物：新建、升级、维护、专精、防御。
 势：扬名、结交、避世、震慑、占机。
 intensity 表示执行强度，范围 0.2 到 1.2。
+必须包含且只包含这些字段：axis、stance、intensity、summary。
+summary 必须是 4 到 120 字的中文短句，用来说明执事长老如何理解谕令。
 不要直接改数值，不要生成剧情。`;
 
 export function buildDecreeUserPrompt(decree: string) {

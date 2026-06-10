@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createServer as createViteServer } from "vite";
 import { createInitialState } from "../src/domain/initialState";
 import { rateSect } from "../src/domain/rating";
 import { resolveTurn } from "../src/domain/resolveTurn";
@@ -58,6 +57,7 @@ app.post("/api/turn", async (req, res) => {
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.resolve(__dirname, "../dist")));
 } else {
+  const { createServer: createViteServer } = await import("vite");
   const vite = await createViteServer({
     server: { middlewareMode: true },
     appType: "spa"
