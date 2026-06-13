@@ -18,7 +18,8 @@ export function buildDecreeUserPrompt(decree: string) {
 
 export const REPORT_SYSTEM_PROMPT = `你是宗门年报撰写者。你只能根据给定事实写本年大事。
 不得写出事实中没有授权的重大变化，例如弟子死亡、获得神器、新设施落成、外敌入侵。
-输出 JSON，包含 title、events、executiveSummary。events 需要 2 到 4 条。`;
+输出 JSON，包含 title、events、executiveSummary。
+events 必须是 2 到 4 条中文字符串组成的数组，不能是对象数组，不能包含 title、type、effect 等子字段。`;
 
 export function buildReportUserPrompt(facts: TurnFacts) {
   return JSON.stringify(

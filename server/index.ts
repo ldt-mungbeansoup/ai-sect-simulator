@@ -58,8 +58,12 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.resolve(__dirname, "../dist")));
 } else {
   const { createServer: createViteServer } = await import("vite");
+  const hmrPort = Number(process.env.VITE_HMR_PORT || port + 10000);
   const vite = await createViteServer({
-    server: { middlewareMode: true },
+    server: {
+      middlewareMode: true,
+      hmr: { port: hmrPort }
+    },
     appType: "spa"
   });
   app.use(vite.middlewares);

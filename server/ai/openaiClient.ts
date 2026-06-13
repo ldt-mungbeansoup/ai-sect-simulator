@@ -40,6 +40,23 @@ function normalizeParsedDecree(value: unknown) {
   return draft;
 }
 
+function normalizeReportDraft(value: unknown) {
+  const draft = { ...(value as Record<string, unknown>) };
+  if (Array.isArray(draft.events)) {
+    draft.events = draft.events.map((event) => {
+      if (typeof event === "string") return event;
+      if (event && typeof event === "object") {
+        const record = event as Record<string, unknown>;
+        const parts = [record.title, record.event, record.description, record.summary, record.effect]
+          .filter((part): part is string => typeof part === "string" && part.trim().length > 0);
+        if (parts.length > 0) return parts.join("：");
+      }
+      return String(event);
+    });
+  }
+  return draft;
+}
+
 async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<ParsedDecree> {
   const response = await client.chat.completions.create({
     model: process.env.DEEPSEEK_MODEL || process.env.OPENAI_MODEL || "deepseek-v4-pro",
@@ -65,7 +82,7 @@ async function draftReportWithDeepSeek(client: OpenAI, facts: TurnFacts): Promis
     max_tokens: 1200
   });
 
-  return ReportDraftSchema.parse(parseJsonContent(response.choices[0]?.message?.content));
+  return ReportDraftSchema.parse(normalizeReportDraft(parseJsonContent(response.choices[0]?.message?.content)));
 }
 
 export async function parseDecreeWithAI(decree: string) {
