@@ -8,11 +8,11 @@ interface FallbackRule {
 }
 
 const rules: FallbackRule[] = [
-  { axis: "人", stance: "安抚", keywords: ["安抚", "稳住", "抚恤", "讲道", "人心", "心气", "休整"], summary: "安定弟子心气，稳住宗门内务。" },
-  { axis: "人", stance: "广招", keywords: ["招", "收徒", "纳新", "弟子", "扩充人手"], summary: "广开山门，补充弟子与人手。" },
-  { axis: "人", stance: "精培", keywords: ["精培", "内门", "点拨", "闭关", "天才", "传功"], summary: "集中资源培养核心弟子。" },
-  { axis: "人", stance: "严训", keywords: ["严训", "苦训", "演武", "试炼", "操练"], summary: "以严训提升弟子战力。" },
-  { axis: "人", stance: "整肃", keywords: ["整肃", "清查", "门规", "惩戒", "肃清"], summary: "整肃门规，压住宗门内耗。" },
+  { axis: "人", stance: "安抚", keywords: ["安抚", "稳住", "稳定", "安定", "抚恤", "抚慰", "慰问", "讲道", "人心", "心气", "休整"], summary: "安定弟子心气，稳住宗门内务。" },
+  { axis: "人", stance: "广招", keywords: ["广招", "招收", "招募", "招揽", "收徒", "纳新", "开山门", "广开山门", "扩充人手"], summary: "广开山门，补充弟子与人手。" },
+  { axis: "人", stance: "精培", keywords: ["精培", "培养", "内门", "核心弟子", "内门弟子", "点拨", "闭关", "天才", "传功"], summary: "集中资源培养核心弟子。" },
+  { axis: "人", stance: "严训", keywords: ["严训", "苦训", "训练", "演武", "试炼", "操练"], summary: "以严训提升弟子战力。" },
+  { axis: "人", stance: "整肃", keywords: ["整肃", "整顿", "约束", "清查", "门规", "惩戒", "肃清"], summary: "整肃门规，压住宗门内耗。" },
   { axis: "财", stance: "搜刮", keywords: ["搜刮", "重税", "压榨", "榨取"], summary: "强行聚敛灵石，承担民怨代价。" },
   { axis: "财", stance: "赈济", keywords: ["赈济", "救济", "开仓", "施药", "扶助"], summary: "以财物扶危济困，换取声望与人心。" },
   { axis: "财", stance: "投资", keywords: ["投资", "购置", "产业", "商会", "灵脉"], summary: "投入灵石经营产业，换取长期收益。" },
@@ -50,7 +50,7 @@ export function parseDecreeFallback(decree: string): ParsedDecree {
       const score = matchScore(decree, candidate.keywords);
       return score > best.score ? { rule: candidate, score } : best;
     },
-    { rule: rules[1], score: 0 }
+    { rule: rules[0], score: 0 }
   ).rule;
 
   return {
