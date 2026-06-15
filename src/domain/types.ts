@@ -24,6 +24,7 @@ export type StanceName =
 
 export interface SectState {
   year: number;
+  divineSense: number;
   disciples: {
     total: number;
     elite: number;

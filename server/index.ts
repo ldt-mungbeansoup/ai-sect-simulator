@@ -2,7 +2,8 @@ import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createInitialState } from "../src/domain/initialState";
+import { calculateDivineSenseCost, countDecreeChars, MAX_DECREE_CHARS } from "../src/domain/decreeCost";
+import { createInitialState, normalizeSectState } from "../src/domain/initialState";
 import { rateSect } from "../src/domain/rating";
 import { resolveTurn } from "../src/domain/resolveTurn";
 import type { AnnualReport, SectState } from "../src/domain/types";
@@ -25,9 +26,22 @@ app.post("/api/turn", async (req, res) => {
       res.status(400).json({ error: "请输入至少两个字的宗主谕令。" });
       return;
     }
+    if (countDecreeChars(decree) > MAX_DECREE_CHARS) {
+      res.status(400).json({ error: `宗主谕令最多${MAX_DECREE_CHARS}字。` });
+      return;
+    }
 
+    const normalizedState = normalizeSectState(state);
     const parsed = await parseDecreeWithAI(decree);
-    const resolved = resolveTurn(state, decree, parsed);
+    const divineSenseCost = calculateDivineSenseCost(decree);
+    if (normalizedState.divineSense < divineSenseCost) {
+      res.status(400).json({
+        error: `神念不足：本令需消耗${divineSenseCost}点神念，当前仅余${normalizedState.divineSense}点。`
+      });
+      return;
+    }
+
+    const resolved = resolveTurn(normalizedState, decree, parsed, { divineSenseCost });
     const reportDraft = await draftReportWithAI(resolved.facts);
     const rating = resolved.nextState.year === 11 ? rateSect(resolved.nextState) : undefined;
     const report: AnnualReport = {
@@ -60,6 +74,7 @@ if (process.env.NODE_ENV === "production") {
   const { createServer: createViteServer } = await import("vite");
   const hmrPort = Number(process.env.VITE_HMR_PORT || port + 10000);
   const vite = await createViteServer({
+    configLoader: "runner",
     server: {
       middlewareMode: true,
       hmr: { port: hmrPort }

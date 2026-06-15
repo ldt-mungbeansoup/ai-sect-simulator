@@ -1,4 +1,5 @@
 import type { SectState } from "./types";
+import { MAX_DIVINE_SENSE } from "./decreeCost";
 
 export const SAMPLE_DECREES = [
   "广开山门，凡有灵根者皆可入我宗。",
@@ -11,6 +12,7 @@ export const SAMPLE_DECREES = [
 export function createInitialState(): SectState {
   return {
     year: 1,
+    divineSense: MAX_DIVINE_SENSE,
     disciples: {
       total: 10,
       elite: 3,
@@ -35,5 +37,14 @@ export function createInitialState(): SectState {
       threat: 18
     },
     history: ["旧封印渐松，宗主闭关前留下十年整顿之期。"]
+  };
+}
+
+export function normalizeSectState(state: SectState): SectState {
+  const divineSense = Number.isFinite(state.divineSense) ? state.divineSense : MAX_DIVINE_SENSE;
+
+  return {
+    ...state,
+    divineSense: Math.min(MAX_DIVINE_SENSE, Math.max(0, Math.round(divineSense)))
   };
 }

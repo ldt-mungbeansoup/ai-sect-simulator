@@ -19,7 +19,8 @@ export function buildDecreeUserPrompt(decree: string) {
 export const REPORT_SYSTEM_PROMPT = `你是宗门年报撰写者。你只能根据给定事实写本年大事。
 不得写出事实中没有授权的重大变化，例如弟子死亡、获得神器、新设施落成、外敌入侵。
 输出 JSON，包含 title、events、executiveSummary。
-events 必须是 2 到 4 条中文字符串组成的数组，不能是对象数组，不能包含 title、type、effect 等子字段。`;
+events 必须是 2 到 4 条中文字符串组成的数组，不能是对象数组，不能包含 title、type、effect 等子字段。
+如果 eventSeeds 中出现数值联动原因，例如供养、人心、气运、威胁、声望或设施训练，年报至少解释其中一条，让玩家明白数值为何变化。`;
 
 export function buildReportUserPrompt(facts: TurnFacts) {
   return JSON.stringify(

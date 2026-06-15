@@ -7,6 +7,7 @@ type NumericPath = {
 };
 
 export const NUMERIC_PATHS: NumericPath[] = [
+  { path: "divineSense", label: "神念", read: (state) => state.divineSense },
   { path: "disciples.total", label: "弟子总数", read: (state) => state.disciples.total },
   { path: "disciples.elite", label: "精英弟子", read: (state) => state.disciples.elite },
   { path: "disciples.morale", label: "士气", read: (state) => state.disciples.morale },

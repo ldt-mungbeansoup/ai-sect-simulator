@@ -1,4 +1,5 @@
 import type { SectState } from "../domain/types";
+import { normalizeSectState } from "../domain/initialState";
 
 const SAVE_KEY = "sect-simulator-save-v1";
 
@@ -7,7 +8,7 @@ export function loadSavedState(): SectState | null {
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as SectState;
+    return normalizeSectState(JSON.parse(raw) as SectState);
   } catch {
     localStorage.removeItem(SAVE_KEY);
     return null;
@@ -15,7 +16,7 @@ export function loadSavedState(): SectState | null {
 }
 
 export function saveState(state: SectState) {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  localStorage.setItem(SAVE_KEY, JSON.stringify(normalizeSectState(state)));
 }
 
 export function clearSavedState() {

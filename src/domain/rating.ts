@@ -5,30 +5,30 @@ const clampScore = (value: number) => Math.round(Math.min(100, Math.max(0, value
 export function rateSect(state: SectState): SectRating {
   const axisScores: Record<Axis, number> = {
     人: clampScore(
-      state.disciples.total * 2 +
-        state.disciples.elite * 6 +
+      state.disciples.total * 1.5 +
+        state.disciples.elite * 5 +
         state.disciples.morale * 0.25 +
         state.disciples.loyalty * 0.25 +
-        state.disciples.combat * 0.45
+        state.disciples.combat * 0.35
     ),
     财: clampScore(
-      state.finance.spiritStones / 12 +
-        state.finance.yearlyIncome * 0.25 -
-        state.finance.yearlyExpense * 0.12
+      state.finance.spiritStones / 18 +
+        state.finance.yearlyIncome * 0.2 -
+        state.finance.yearlyExpense * 0.16
     ),
     物: clampScore(
       (state.facilities.trainingGround +
         state.facilities.scripturePavilion +
         state.facilities.spiritField +
         state.facilities.alchemyRoom) *
-        18
+        20
     ),
-    势: clampScore(state.influence.reputation * 0.8 + state.influence.luck * 0.5 - state.influence.threat * 0.25 + 20)
+    势: clampScore(state.influence.reputation * 0.9 + state.influence.luck * 0.7 - state.influence.threat * 0.35 + 18)
   };
 
-  const shortfallPenalty = Math.min(...Object.values(axisScores)) * 0.18;
+  const shortfallPenalty = Math.min(...Object.values(axisScores)) * 0.25;
   const average = Object.values(axisScores).reduce((sum, score) => sum + score, 0) / 4;
-  const totalScore = clampScore(average * 0.82 + shortfallPenalty);
+  const totalScore = clampScore(average * 0.75 + shortfallPenalty);
 
   const rank: SectRating["rank"] =
     totalScore < 25
