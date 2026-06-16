@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createInitialState } from "../../src/domain/initialState";
-import { buildNewGameResponse, buildTurnResponse, formatApiError } from "../apiHandlers";
+import { buildHealthResponse, buildNewGameResponse, buildTurnResponse, formatApiError } from "../apiHandlers";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -12,6 +12,17 @@ describe("apiHandlers", () => {
 
     expect(response.state.year).toBe(1);
     expect(response.state.divineSense).toBe(100);
+  });
+
+  it("reports AI runtime status without exposing key values", () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", "sk-secret");
+    vi.stubEnv("AI_PROVIDER", "deepseek");
+
+    const response = buildHealthResponse();
+
+    expect(response.ai.provider).toBe("deepseek");
+    expect(response.ai.hasDeepSeekKey).toBe(true);
+    expect(JSON.stringify(response)).not.toContain("sk-secret");
   });
 
   it("resolves a turn through shared api logic", async () => {
@@ -40,7 +51,7 @@ describe("apiHandlers", () => {
     const formatted = formatApiError(new Error("AI API key is not configured"));
 
     expect(formatted.status).toBe(503);
-    expect(formatted.body.error).toContain("缺少服务端");
+    expect(formatted.body.error).toContain("未读取到");
   });
 
   it("does not leak invalid API key details to clients", () => {
@@ -50,7 +61,7 @@ describe("apiHandlers", () => {
     ));
 
     expect(formatted.status).toBe(503);
-    expect(formatted.body.error).toContain("缺少服务端");
+    expect(formatted.body.error).toContain("无效");
     expect(formatted.body.error).not.toContain("sk-test");
   });
 });

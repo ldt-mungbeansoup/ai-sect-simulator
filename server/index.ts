@@ -3,7 +3,7 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SectState } from "../src/domain/types";
-import { buildNewGameResponse, buildTurnResponse, formatApiError } from "./apiHandlers";
+import { buildHealthResponse, buildNewGameResponse, buildTurnResponse, formatApiError } from "./apiHandlers";
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -13,6 +13,10 @@ app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/new-game", (_req, res) => {
   res.json(buildNewGameResponse());
+});
+
+app.get("/api/health", (_req, res) => {
+  res.json(buildHealthResponse());
 });
 
 app.post("/api/turn", async (req, res) => {

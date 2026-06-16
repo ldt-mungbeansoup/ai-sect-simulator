@@ -3,7 +3,7 @@ import { createInitialState, normalizeSectState } from "../src/domain/initialSta
 import { rateSect } from "../src/domain/rating";
 import { resolveTurn } from "../src/domain/resolveTurn";
 import type { AnnualReport, SectState, TurnFacts } from "../src/domain/types";
-import { draftReportWithAI, parseDecreeWithAI } from "./ai/openaiClient";
+import { draftReportWithAI, getAIRuntimeStatus, parseDecreeWithAI } from "./ai/openaiClient";
 
 export interface TurnResponse {
   state: SectState;
@@ -13,6 +13,13 @@ export interface TurnResponse {
 
 export function buildNewGameResponse() {
   return { state: createInitialState() };
+}
+
+export function buildHealthResponse() {
+  return {
+    ok: true,
+    ai: getAIRuntimeStatus()
+  };
 }
 
 export async function buildTurnResponse(body: { state?: SectState; decree?: string }): Promise<TurnResponse> {
@@ -61,7 +68,7 @@ export function formatApiError(error: unknown) {
     status,
     body: {
       error: isAIAuthError
-        ? "缺少服务端 DEEPSEEK_API_KEY 或 OPENAI_API_KEY，无法进行联网 AI 试玩。"
+        ? getAIConfigurationMessage(message)
         : status >= 500
           ? `本回合演算失败：${message}`
           : message
@@ -83,7 +90,16 @@ function getApiErrorStatus(error: unknown) {
 function isAIConfigurationError(error: unknown, message: string) {
   const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
   return message.includes("AI API key") ||
+    message.includes("API key is not configured") ||
+    message.includes("API_KEY is not configured") ||
     message.includes("Incorrect API key") ||
     message.includes("invalid_api_key") ||
     code === "invalid_api_key";
+}
+
+function getAIConfigurationMessage(message: string) {
+  if (message.includes("Incorrect API key") || message.includes("invalid_api_key")) {
+    return "服务端 AI Key 无效或与所选供应商不匹配，请检查 Netlify 环境变量中的 DEEPSEEK_API_KEY / OPENAI_API_KEY 与 AI_PROVIDER。";
+  }
+  return "服务端未读取到可用的 DEEPSEEK_API_KEY 或 OPENAI_API_KEY，请检查 Netlify 环境变量并重新部署。";
 }

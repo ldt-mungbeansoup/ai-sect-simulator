@@ -1,4 +1,4 @@
-import { buildNewGameResponse, buildTurnResponse, formatApiError } from "../../server/apiHandlers";
+import { buildHealthResponse, buildNewGameResponse, buildTurnResponse, formatApiError } from "../../server/apiHandlers";
 import type { SectState } from "../../src/domain/types";
 
 interface NetlifyEvent {
@@ -19,6 +19,10 @@ export async function handler(event: NetlifyEvent) {
 
     if (event.httpMethod === "GET" && event.path.endsWith("/new-game")) {
       return response(200, buildNewGameResponse());
+    }
+
+    if (event.httpMethod === "GET" && event.path.endsWith("/health")) {
+      return response(200, buildHealthResponse());
     }
 
     if (event.httpMethod === "POST" && event.path.endsWith("/turn")) {

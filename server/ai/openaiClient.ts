@@ -7,18 +7,81 @@ import { buildDecreeUserPrompt, buildReportUserPrompt, DECREE_SYSTEM_PROMPT, REP
 import { ParsedDecreeSchema, ReportDraftSchema, type ReportDraftOutput } from "./schemas";
 
 function getClient() {
-  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = getProviderConfig().apiKey;
   if (!apiKey) {
     throw new Error("AI API key is not configured");
   }
   return new OpenAI({
     apiKey,
-    baseURL: process.env.DEEPSEEK_BASE_URL || process.env.OPENAI_BASE_URL
+    baseURL: getProviderConfig().baseURL
   });
 }
 
 function isDeepSeekProvider() {
-  return process.env.AI_PROVIDER === "deepseek" || Boolean(process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_BASE_URL);
+  return getProviderConfig().provider === "deepseek";
+}
+
+export function getAIRuntimeStatus() {
+  const configuredProvider = process.env.AI_PROVIDER?.toLowerCase() || "auto";
+  const hasDeepSeekKey = Boolean(process.env.DEEPSEEK_API_KEY);
+  const hasOpenAIKey = Boolean(process.env.OPENAI_API_KEY);
+  const provider = configuredProvider === "deepseek" || configuredProvider === "openai"
+    ? configuredProvider
+    : hasDeepSeekKey
+      ? "deepseek"
+      : hasOpenAIKey
+        ? "openai"
+        : "unconfigured";
+
+  return {
+    provider,
+    configuredProvider,
+    hasDeepSeekKey,
+    hasOpenAIKey,
+    deepSeekModel: process.env.DEEPSEEK_MODEL || "deepseek-v4-pro",
+    openAIModel: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+    aiTestMode: process.env.AI_TEST_MODE === "true"
+  };
+}
+
+function getProviderConfig() {
+  const configuredProvider = process.env.AI_PROVIDER?.toLowerCase();
+
+  if (configuredProvider === "deepseek") {
+    if (!process.env.DEEPSEEK_API_KEY) {
+      throw new Error("AI provider is deepseek but DEEPSEEK_API_KEY is not configured");
+    }
+    return {
+      provider: "deepseek" as const,
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com"
+    };
+  }
+
+  if (configuredProvider === "openai") {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("AI provider is openai but OPENAI_API_KEY is not configured");
+    }
+    return {
+      provider: "openai" as const,
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL
+    };
+  }
+
+  if (process.env.DEEPSEEK_API_KEY) {
+    return {
+      provider: "deepseek" as const,
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com"
+    };
+  }
+
+  return {
+    provider: "openai" as const,
+    apiKey: process.env.OPENAI_API_KEY,
+    baseURL: process.env.OPENAI_BASE_URL
+  };
 }
 
 function parseJsonContent(content: string | null | undefined) {
@@ -59,7 +122,7 @@ function normalizeReportDraft(value: unknown) {
 
 async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<ParsedDecree> {
   const response = await client.chat.completions.create({
-    model: process.env.DEEPSEEK_MODEL || process.env.OPENAI_MODEL || "deepseek-v4-pro",
+    model: process.env.DEEPSEEK_MODEL || "deepseek-v4-pro",
     messages: [
       { role: "system", content: DECREE_SYSTEM_PROMPT },
       { role: "user", content: `${buildDecreeUserPrompt(decree)}\n请只输出 json 对象。` }
@@ -73,7 +136,7 @@ async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<
 
 async function draftReportWithDeepSeek(client: OpenAI, facts: TurnFacts): Promise<ReportDraftOutput> {
   const response = await client.chat.completions.create({
-    model: process.env.DEEPSEEK_MODEL || process.env.OPENAI_MODEL || "deepseek-v4-pro",
+    model: process.env.DEEPSEEK_MODEL || "deepseek-v4-pro",
     messages: [
       { role: "system", content: REPORT_SYSTEM_PROMPT },
       { role: "user", content: `${buildReportUserPrompt(facts)}\n请只输出 json 对象。` }
