@@ -42,4 +42,15 @@ describe("apiHandlers", () => {
     expect(formatted.status).toBe(503);
     expect(formatted.body.error).toContain("缺少服务端");
   });
+
+  it("does not leak invalid API key details to clients", () => {
+    const formatted = formatApiError(Object.assign(
+      new Error("401 Incorrect API key provided: sk-test"),
+      { status: 401, code: "invalid_api_key" }
+    ));
+
+    expect(formatted.status).toBe(503);
+    expect(formatted.body.error).toContain("缺少服务端");
+    expect(formatted.body.error).not.toContain("sk-test");
+  });
 });

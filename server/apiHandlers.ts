@@ -53,13 +53,14 @@ export async function buildTurnResponse(body: { state?: SectState; decree?: stri
 }
 
 export function formatApiError(error: unknown) {
-  const status = getApiErrorStatus(error);
   const message = error instanceof Error ? error.message : "未知错误";
+  const isAIAuthError = isAIConfigurationError(error, message);
+  const status = isAIAuthError ? 503 : getApiErrorStatus(error);
 
   return {
     status,
     body: {
-      error: message.includes("AI API key")
+      error: isAIAuthError
         ? "缺少服务端 DEEPSEEK_API_KEY 或 OPENAI_API_KEY，无法进行联网 AI 试玩。"
         : status >= 500
           ? `本回合演算失败：${message}`
@@ -76,6 +77,13 @@ function createApiError(status: number, message: string) {
 
 function getApiErrorStatus(error: unknown) {
   if (error instanceof Error && "status" in error && typeof error.status === "number") return error.status;
-  if (error instanceof Error && error.message.includes("AI API key")) return 503;
   return 500;
+}
+
+function isAIConfigurationError(error: unknown, message: string) {
+  const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  return message.includes("AI API key") ||
+    message.includes("Incorrect API key") ||
+    message.includes("invalid_api_key") ||
+    code === "invalid_api_key";
 }

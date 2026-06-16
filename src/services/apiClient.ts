@@ -11,6 +11,13 @@ export interface TurnResponse {
   report: AnnualReport;
 }
 
+class ApiResponseError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "ApiResponseError";
+  }
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const rawBody = await response.text();
   let body: unknown = {};
@@ -27,7 +34,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
     const message = body && typeof body === "object" && "error" in body
       ? String((body as { error?: unknown }).error)
       : "";
-    throw new Error(message || `请求失败（HTTP ${response.status}）`);
+    throw new ApiResponseError(message || `请求失败（HTTP ${response.status}）`, response.status);
   }
 
   return body as T;
@@ -39,7 +46,7 @@ export async function fetchNewGame(): Promise<SectState> {
     const body = await parseResponse<{ state: SectState }>(response);
     return normalizeSectState(body.state);
   } catch (error) {
-    if (shouldUseStaticFallback()) return createInitialState();
+    if (shouldUseStaticFallback() && shouldUseLocalFallback(error)) return createInitialState();
     throw error;
   }
 }
@@ -56,7 +63,7 @@ export async function submitTurn(state: SectState, decree: string, signal?: Abor
     const body = await parseResponse<TurnResponse>(response);
     return { ...body, state: normalizeTurnState(body.state, state, decree) };
   } catch (error) {
-    if (shouldUseStaticFallback() && !(signal?.aborted)) return resolveTurnLocally(state, decree);
+    if (shouldUseStaticFallback() && !(signal?.aborted) && shouldUseLocalFallback(error)) return resolveTurnLocally(state, decree);
     throw error;
   }
 }
@@ -92,6 +99,11 @@ function estimateDivineSenseAfterTurn(previousState: SectState, decree: string) 
 function shouldUseStaticFallback() {
   if (!import.meta.env.PROD || typeof window === "undefined") return false;
   return !["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+function shouldUseLocalFallback(error: unknown) {
+  if (error instanceof ApiResponseError) return error.status === 404;
+  return true;
 }
 
 function resolveTurnLocally(state: SectState, decree: string): TurnResponse {
