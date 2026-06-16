@@ -399,7 +399,7 @@ function ReportView({ report }: { report?: AnnualReport }) {
     return (
       <div className="empty-scroll">
         <h2>开局简报</h2>
-        <p>魔封未破，旧宗待兴。宗主闭关前，只余十年可整顿山门。</p>
+        <p>宗主闭死关突破，距离宗门大考还有十年时间，山门急需整顿。</p>
       </div>
     );
   }
@@ -462,7 +462,7 @@ function DashboardView({
     state.influence.threat > 60 ? "外部威胁逼近" : "",
     state.finance.spiritStones < 160 ? "灵石库存吃紧" : ""
   ].filter(Boolean);
-  const routeHint = state.history.at(-1) ?? "旧封印渐松，宗门仍待宗主定调。";
+  const routeHint = state.history.at(-1) ?? "宗主闭死关突破，距离宗门大考还有十年时间。";
 
   return (
     <section className="desk-board" aria-label="宗门卷轴主界面">
@@ -485,7 +485,7 @@ function DashboardView({
         <aside className="home-report" aria-label="最近年报摘录">
           <p className="eyebrow">{latestReport ? "最近年报" : "开局简报"}</p>
           <h2>{latestReport?.title ?? "旧宗待兴"}</h2>
-          <p>{latestReport?.events[0] ?? "魔封未破，旧宗待兴。宗主闭关前，只余十年可整顿山门。"}</p>
+          <p>{latestReport?.events[0] ?? "宗主闭死关突破，距离宗门大考还有十年时间，山门急需整顿。"}</p>
           <div className="pressure-tags" aria-label="当前风险">
             {(pressureNotes.length > 0 ? pressureNotes : ["暂无急迫危机"]).map((note) => (
               <span key={note}>{note}</span>
@@ -540,7 +540,7 @@ function DashboardView({
         summary={[
           ["已载年份", archive.length],
           ["最近卷名", latestReport ? "年报已归档" : "开局简报"],
-          ["关键转折", latestReport ? "点击翻阅" : "旧封印渐松"]
+          ["关键转折", latestReport ? "点击翻阅" : "大考将近"]
         ]}
       />
       <DashboardCard

@@ -36,7 +36,7 @@ export function createInitialState(): SectState {
       luck: 0,
       threat: 18
     },
-    history: ["旧封印渐松，宗主闭关前留下十年整顿之期。"]
+    history: ["宗主闭死关突破，距离宗门大考还有十年时间。"]
   };
 }
 

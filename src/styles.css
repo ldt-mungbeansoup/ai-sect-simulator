@@ -1535,6 +1535,14 @@ textarea:focus {
   line-height: 1.42;
 }
 
+.home-report > p:not(.eyebrow),
+.route-hint {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .exam-track {
   overflow: hidden;
   height: 7px;
