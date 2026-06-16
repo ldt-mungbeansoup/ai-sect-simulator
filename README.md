@@ -25,8 +25,8 @@ npm run dev
 AI_PROVIDER=deepseek
 DEEPSEEK_API_KEY=
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-v4-pro
-OPENAI_MODEL=deepseek-v4-pro
+DEEPSEEK_MODEL=deepseek-chat
+OPENAI_MODEL=gpt-4.1-mini
 ```
 
 在本地 `.env` 中填入 `DEEPSEEK_API_KEY` 后即可测试真实联网 AI。不要提交 `.env`、API Key 或 Token。
@@ -43,8 +43,8 @@ Netlify 站点需要在后台配置服务端环境变量，不能把密钥写进
 ```bash
 AI_PROVIDER=deepseek
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-v4-pro
-OPENAI_MODEL=deepseek-v4-pro
+DEEPSEEK_MODEL=deepseek-chat
+OPENAI_MODEL=gpt-4.1-mini
 ```
 
 5. 保存后触发一次 `Deploys` -> `Trigger deploy` -> `Deploy site`。

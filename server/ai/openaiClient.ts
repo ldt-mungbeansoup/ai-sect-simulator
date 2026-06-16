@@ -21,6 +21,11 @@ function isDeepSeekProvider() {
   return getProviderConfig().provider === "deepseek";
 }
 
+function getDeepSeekModel() {
+  const model = process.env.DEEPSEEK_MODEL;
+  return !model || model === "deepseek-v4-pro" ? "deepseek-chat" : model;
+}
+
 export function getAIRuntimeStatus() {
   const configuredProvider = process.env.AI_PROVIDER?.toLowerCase() || "auto";
   const hasDeepSeekKey = Boolean(process.env.DEEPSEEK_API_KEY);
@@ -38,7 +43,7 @@ export function getAIRuntimeStatus() {
     configuredProvider,
     hasDeepSeekKey,
     hasOpenAIKey,
-    deepSeekModel: process.env.DEEPSEEK_MODEL || "deepseek-v4-pro",
+    deepSeekModel: getDeepSeekModel(),
     openAIModel: process.env.OPENAI_MODEL || "gpt-4.1-mini",
     aiTestMode: process.env.AI_TEST_MODE === "true"
   };
@@ -122,13 +127,13 @@ function normalizeReportDraft(value: unknown) {
 
 async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<ParsedDecree> {
   const response = await client.chat.completions.create({
-    model: process.env.DEEPSEEK_MODEL || "deepseek-v4-pro",
+    model: getDeepSeekModel(),
     messages: [
       { role: "system", content: DECREE_SYSTEM_PROMPT },
       { role: "user", content: `${buildDecreeUserPrompt(decree)}\n请只输出 json 对象。` }
     ],
     response_format: { type: "json_object" },
-    max_tokens: 800
+    max_tokens: 400
   });
 
   return ParsedDecreeSchema.parse(normalizeParsedDecree(parseJsonContent(response.choices[0]?.message?.content)));
@@ -136,13 +141,13 @@ async function parseDecreeWithDeepSeek(client: OpenAI, decree: string): Promise<
 
 async function draftReportWithDeepSeek(client: OpenAI, facts: TurnFacts): Promise<ReportDraftOutput> {
   const response = await client.chat.completions.create({
-    model: process.env.DEEPSEEK_MODEL || "deepseek-v4-pro",
+    model: getDeepSeekModel(),
     messages: [
       { role: "system", content: REPORT_SYSTEM_PROMPT },
       { role: "user", content: `${buildReportUserPrompt(facts)}\n请只输出 json 对象。` }
     ],
     response_format: { type: "json_object" },
-    max_tokens: 1200
+    max_tokens: 800
   });
 
   return ReportDraftSchema.parse(normalizeReportDraft(parseJsonContent(response.choices[0]?.message?.content)));
