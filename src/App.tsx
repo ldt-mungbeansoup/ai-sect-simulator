@@ -765,8 +765,8 @@ function getErrorGuidance(error: string) {
   }
   if (error.includes("API_KEY") || error.includes("API Key") || error.includes("缺少服务端")) {
     return [
-      "联网演示需要在本地 .env 配置 DEEPSEEK_API_KEY 或 OPENAI_API_KEY。",
-      "没有密钥时，可用 AI_TEST_MODE=true npm run dev 启动演示模式，先体验规则闭环。"
+      "线上试玩需要在 Netlify 环境变量中配置 DEEPSEEK_API_KEY 或 OPENAI_API_KEY，并重新部署。",
+      "本地联网演示则在 .env 配置密钥；没有密钥时可用 AI_TEST_MODE=true npm run dev 启动演示模式。"
     ];
   }
   if (error.includes("演算失败") || error.includes("无法连接")) {

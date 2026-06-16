@@ -31,6 +31,25 @@ OPENAI_MODEL=deepseek-v4-pro
 
 在本地 `.env` 中填入 `DEEPSEEK_API_KEY` 后即可测试真实联网 AI。不要提交 `.env`、API Key 或 Token。
 
+## Netlify 联网部署
+
+Netlify 站点需要在后台配置服务端环境变量，不能把密钥写进前端代码或仓库：
+
+1. 进入 Netlify 项目后台。
+2. 打开 `Site configuration` -> `Environment variables`。
+3. 添加 `DEEPSEEK_API_KEY`，或添加 `OPENAI_API_KEY`。
+4. 如果使用 DeepSeek，建议同时添加：
+
+```bash
+AI_PROVIDER=deepseek
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-pro
+OPENAI_MODEL=deepseek-v4-pro
+```
+
+5. 保存后触发一次 `Deploys` -> `Trigger deploy` -> `Deploy site`。
+6. 部署完成后访问 `/api/new-game` 应返回 JSON，试玩提交谕令时不应再出现缺少服务端 Key 的错误。
+
 ## 演示模式
 
 没有 AI Key 时，可以用测试模式验证界面和规则闭环：
