@@ -31,6 +31,28 @@ interface RepresentativeDisciple {
 }
 
 const REPORT_ARCHIVE_KEY = "sect-simulator-report-archive-v1";
+const ONBOARDING_SEEN_KEY = "sect-simulator-onboarding-seen-v1";
+
+const ONBOARDING_STEPS = [
+  {
+    title: "执事传音",
+    body: "宗主已闭死关突破，只能以神念传下谕令。距宗门大考尚余十年，请在十年内整顿山门，争取更高评级。"
+  },
+  {
+    title: "一年一令",
+    body: "每年只能传下一条谕令。谕令会消耗神念，字数越多消耗越高；执事长老会拆解谕令，诸堂据此结算本年变化。"
+  },
+  {
+    title: "先定方向",
+    body: "当前宗门尚稳，灵石略有余裕。可先选择一个方向：稳住弟子、开源聚财、修缮山门，或低调避世。"
+  }
+];
+
+const ONBOARDING_DECREES = [
+  "稳住弟子心气，讲道安抚门人。",
+  "重开商路，售卖丹药，补足库房灵石。",
+  "修缮山门阵法，戒备外患。"
+];
 
 const viewMeta: Record<ViewId, { title: string; subtitle: string }> = {
   dashboard: { title: "宗门卷轴", subtitle: "卷上六令，皆系宗门兴衰。" },
@@ -60,6 +82,14 @@ function saveReportArchive(entries: ReportEntry[]) {
 
 function clearReportArchive() {
   localStorage.removeItem(REPORT_ARCHIVE_KEY);
+}
+
+function hasSeenOnboarding() {
+  return localStorage.getItem(ONBOARDING_SEEN_KEY) === "true";
+}
+
+function markOnboardingSeen() {
+  localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
 }
 
 function DeltaList({ deltas, limit = 8 }: { deltas: NumericDelta[]; limit?: number }) {
@@ -889,6 +919,52 @@ function OmensView({ state }: { state: SectState }) {
   );
 }
 
+function OnboardingGuide({
+  onClose,
+  onPickDecree
+}: {
+  onClose: () => void;
+  onPickDecree: (decree: string) => void;
+}) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const step = ONBOARDING_STEPS[stepIndex];
+  const isLastStep = stepIndex === ONBOARDING_STEPS.length - 1;
+
+  return (
+    <aside className="onboarding-guide" aria-label="开局游玩引导">
+      <div className="onboarding-header">
+        <span>开局指引</span>
+        <button type="button" onClick={onClose}>跳过</button>
+      </div>
+      <h2>{step.title}</h2>
+      <p>{step.body}</p>
+      {isLastStep && (
+        <div className="onboarding-decrees" aria-label="示例谕令">
+          {ONBOARDING_DECREES.map((sample) => (
+            <button type="button" key={sample} onClick={() => onPickDecree(sample)}>
+              {sample}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="onboarding-footer">
+        <div className="onboarding-dots" aria-hidden="true">
+          {ONBOARDING_STEPS.map((item, index) => (
+            <span className={index === stepIndex ? "active" : ""} key={item.title} />
+          ))}
+        </div>
+        {isLastStep ? (
+          <button className="primary-button" type="button" onClick={onClose}>开始整顿</button>
+        ) : (
+          <button className="primary-button" type="button" onClick={() => setStepIndex((index) => index + 1)}>
+            {stepIndex === 0 ? "知晓" : "传令试行"}
+          </button>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 export default function App() {
   const [state, setState] = useState<SectState | null>(() => loadSavedState());
   const [reportArchive, setReportArchive] = useState<ReportEntry[]>(() => loadReportArchive());
@@ -897,6 +973,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [waitingSeconds, setWaitingSeconds] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
   const requestIdRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -933,6 +1010,17 @@ export default function App() {
   function handleDecreeChange(value: string) {
     setDecree(trimDecreeToMaxChars(value));
     setError("");
+  }
+
+  function closeOnboarding() {
+    markOnboardingSeen();
+    setShowOnboarding(false);
+  }
+
+  function handleOnboardingDecree(sample: string) {
+    handleDecreeChange(sample);
+    setActiveView("decree");
+    closeOnboarding();
   }
 
   async function handleSubmit(retry = false) {
@@ -1020,6 +1108,9 @@ export default function App() {
       {activeView !== "dashboard" && <StatusBar state={state} />}
       <section className="ink-panel">
         {activeView === "dashboard" && <DashboardView state={state} archive={reportArchive} onOpen={setActiveView} onNewGame={handleNewGame} />}
+        {activeView === "dashboard" && showOnboarding && (
+          <OnboardingGuide onClose={closeOnboarding} onPickDecree={handleOnboardingDecree} />
+        )}
         {activeView !== "dashboard" && detailContent && (
           <DetailLayout
             title={currentMeta.title}
