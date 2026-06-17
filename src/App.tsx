@@ -474,12 +474,14 @@ function DashboardView({
   state,
   archive,
   onOpen,
-  onNewGame
+  onNewGame,
+  onShowGuide
 }: {
   state: SectState;
   archive: ReportEntry[];
   onOpen: (view: ViewId) => void;
   onNewGame: () => void;
+  onShowGuide: () => void;
 }) {
   const netIncome = state.finance.yearlyIncome - state.finance.yearlyExpense;
   const latestReport = archive.at(-1)?.report ?? state.lastReport;
@@ -522,7 +524,10 @@ function DashboardView({
             ))}
           </div>
         </aside>
-        <button className="ghost-button home-restart-button" type="button" onClick={onNewGame}>重开</button>
+        <div className="home-actions">
+          <button className="ghost-button home-restart-button" type="button" onClick={onNewGame}>重开</button>
+          <button className="ghost-button home-guide-button" type="button" onClick={onShowGuide}>玩法引导</button>
+        </div>
       </div>
       <div className="dashboard-grid">
       <DashboardCard
@@ -1107,7 +1112,15 @@ export default function App() {
     <main className={`app-shell ${activeView === "dashboard" ? "home-shell" : "detail-shell"}`}>
       {activeView !== "dashboard" && <StatusBar state={state} />}
       <section className="ink-panel">
-        {activeView === "dashboard" && <DashboardView state={state} archive={reportArchive} onOpen={setActiveView} onNewGame={handleNewGame} />}
+        {activeView === "dashboard" && (
+          <DashboardView
+            state={state}
+            archive={reportArchive}
+            onOpen={setActiveView}
+            onNewGame={handleNewGame}
+            onShowGuide={() => setShowOnboarding(true)}
+          />
+        )}
         {activeView === "dashboard" && showOnboarding && (
           <OnboardingGuide onClose={closeOnboarding} onPickDecree={handleOnboardingDecree} />
         )}

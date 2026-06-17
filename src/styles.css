@@ -1582,9 +1582,16 @@ textarea:focus {
   font-size: 0.84rem;
 }
 
-.home-restart-button {
+.home-actions {
   flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
   align-self: flex-start;
+}
+
+.home-restart-button,
+.home-guide-button {
   min-width: 54px;
   padding: 7px 11px;
   border-color: rgba(90, 58, 36, 0.2);
