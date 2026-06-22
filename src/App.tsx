@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { TenYearExamModal } from "./components/TenYearExamModal";
 import { calculateDivineSenseCost, countDecreeChars, MAX_DECREE_CHARS, trimDecreeToMaxChars } from "./domain/decreeCost";
 import { SAMPLE_DECREES } from "./domain/initialState";
 import { rateSect } from "./domain/rating";
-import type { AnnualReport, NumericDelta, SectState } from "./domain/types";
+import type { AnnualReport, NumericDelta, SectRating, SectState } from "./domain/types";
 import { fetchNewGame, submitTurn } from "./services/apiClient";
+import {
+  getCompletedExamRating,
+  markTenYearExamShown,
+  resetTenYearExamShown,
+  shouldAutoShowTenYearExam
+} from "./services/examStore";
 import { clearSavedState, loadSavedState, saveState } from "./services/saveStore";
 
 type ViewId = "dashboard" | "disciples" | "facilities" | "finance" | "chronicle" | "decree" | "omens";
@@ -774,22 +781,39 @@ function FinanceView({ state }: { state: SectState }) {
   );
 }
 
-function ChronicleView({ archive, state }: { archive: ReportEntry[]; state: SectState }) {
+function ChronicleView({
+  archive,
+  state,
+  onShowExam
+}: {
+  archive: ReportEntry[];
+  state: SectState;
+  onShowExam: (rating: SectRating) => void;
+}) {
   const entries = archive.length > 0 ? archive : state.lastReport ? [{ year: state.year - 1, report: state.lastReport }] : [];
+  const examRating = entries.slice().reverse().find((entry) => entry.report.rating)?.report.rating;
 
   if (entries.length === 0) {
     return <ReportView />;
   }
 
   return (
-    <div className="chronicle-list">
-      {entries.map((entry, index) => (
-        <article className="chronicle-entry" key={`${entry.year}-${index}`}>
-          <span className="year-seal">第 {entry.year} 年</span>
-          <ReportView report={entry.report} />
-        </article>
-      ))}
-    </div>
+    <>
+      {examRating && (
+        <div className="chronicle-exam-entry">
+          <div><span>仙盟敕榜</span><strong>{examRating.rank} · {examRating.totalScore} 分</strong></div>
+          <button className="primary-button" type="button" onClick={() => onShowExam(examRating)}>查看大考结果</button>
+        </div>
+      )}
+      <div className="chronicle-list">
+        {entries.map((entry, index) => (
+          <article className="chronicle-entry" key={`${entry.year}-${index}`}>
+            <span className="year-seal">第 {entry.year} 年</span>
+            <ReportView report={entry.report} />
+          </article>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -982,6 +1006,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [waitingSeconds, setWaitingSeconds] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding());
+  const [examModal, setExamModal] = useState<{ rating: SectRating; expanded: boolean } | null>(null);
   const requestIdRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -997,6 +1022,14 @@ export default function App() {
     if (!state) {
       fetchNewGame().then(setState).catch((err: Error) => setError(err.message));
     }
+  }, [state]);
+
+  useEffect(() => {
+    if (!shouldAutoShowTenYearExam(state)) return;
+    const rating = getCompletedExamRating(state);
+    if (!rating) return;
+    markTenYearExamShown();
+    setExamModal({ rating, expanded: false });
   }, [state]);
 
   useEffect(() => {
@@ -1052,10 +1085,17 @@ export default function App() {
       const turnYear = state.year;
       const response = await submitTurn(state, decree.trim(), abortController.signal);
       if (requestIdRef.current !== requestId) return;
+      const nextArchive = [...reportArchive, { year: turnYear, report: response.report }];
+      saveState(response.state);
+      saveReportArchive(nextArchive);
       setState(response.state);
-      setReportArchive((entries) => [...entries, { year: turnYear, report: response.report }]);
+      setReportArchive(nextArchive);
       setActiveView("decree");
       setDecree("");
+      if (response.report.rating) {
+        markTenYearExamShown();
+        setExamModal({ rating: response.report.rating, expanded: false });
+      }
     } catch (err) {
       if (abortController.signal.aborted) return;
       setError(err instanceof Error ? err.message : "本回合演算失败。");
@@ -1071,11 +1111,14 @@ export default function App() {
     clearSavedState();
     clearReportArchive();
     setReportArchive([]);
+    setExamModal(null);
     setActiveView("dashboard");
     setError("");
     setDecree("");
     abortControllerRef.current?.abort();
-    setState(await fetchNewGame());
+    const nextState = await fetchNewGame();
+    resetTenYearExamShown();
+    setState(nextState);
   }
 
   if (!state) {
@@ -1093,7 +1136,13 @@ export default function App() {
       : activeView === "finance"
         ? <FinanceView state={state} />
         : activeView === "chronicle"
-          ? <ChronicleView archive={reportArchive} state={state} />
+          ? (
+            <ChronicleView
+              archive={reportArchive}
+              state={state}
+              onShowExam={(rating) => setExamModal({ rating, expanded: true })}
+            />
+          )
           : activeView === "decree"
             ? (
               <DecreeView
@@ -1138,6 +1187,19 @@ export default function App() {
           </DetailLayout>
         )}
       </section>
+      {examModal && (
+        <TenYearExamModal
+          key={`${examModal.rating.rank}-${examModal.rating.totalScore}-${examModal.expanded ? "expanded" : "reveal"}`}
+          rating={examModal.rating}
+          initiallyExpanded={examModal.expanded}
+          onClose={() => setExamModal(null)}
+          onOpenChronicle={() => {
+            setExamModal(null);
+            setActiveView("chronicle");
+          }}
+          onRestart={() => void handleNewGame()}
+        />
+      )}
     </main>
   );
 }
