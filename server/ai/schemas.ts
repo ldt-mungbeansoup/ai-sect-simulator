@@ -32,6 +32,12 @@ export const ParsedDecreeSchema = z.object({
   summary: z.string().min(4).max(120)
 });
 
+export const ReportDraftAISchema = z.object({
+  title: z.string().min(1).max(40),
+  events: z.array(z.string().min(8).max(160)).min(2).max(4),
+  executiveSummary: z.string().min(8).max(180)
+});
+
 export const ReportDraftSchema = z.object({
   title: z.string().min(4).max(40),
   events: z.array(z.string().min(8).max(160)).min(2).max(4),

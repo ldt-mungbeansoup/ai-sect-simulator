@@ -54,6 +54,8 @@ const ONBOARDING_DECREES = [
   "修缮山门阵法，戒备外患。"
 ];
 
+const FACILITY_LEVEL_LABELS = ["未建", "初立", "完备", "鼎盛"];
+
 const viewMeta: Record<ViewId, { title: string; subtitle: string }> = {
   dashboard: { title: "宗门卷轴", subtitle: "卷上六令，皆系宗门兴衰。" },
   disciples: { title: "弟子堂", subtitle: "观弟子根骨、修为、士气与忠诚。" },
@@ -738,7 +740,8 @@ function FacilitiesView({ state }: { state: SectState }) {
       {facilities.map(([name, level, desc]) => (
         <SectionPanel title={String(name)} key={String(name)}>
           <dl className="ledger-list">
-            <div><dt>等级</dt><dd>Lv{level}</dd></div>
+            <div><dt>等级</dt><dd>Lv{level} · {FACILITY_LEVEL_LABELS[Number(level)]}</dd></div>
+            <div><dt>下一阶</dt><dd>{Number(level) >= 3 ? "已达上限" : `Lv${Number(level) + 1} · ${FACILITY_LEVEL_LABELS[Number(level) + 1]}`}</dd></div>
             <div><dt>作用</dt><dd>{desc}</dd></div>
           </dl>
         </SectionPanel>

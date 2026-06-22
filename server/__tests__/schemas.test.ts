@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { normalizeReportDraft } from "../ai/openaiClient";
 import { ParsedDecreeSchema, ReportDraftSchema } from "../ai/schemas";
 
 describe("AI schemas", () => {
@@ -32,5 +33,15 @@ describe("AI schemas", () => {
     });
 
     expect(report.events).toHaveLength(2);
+  });
+
+  it("expands an AI report title shorter than four characters", () => {
+    const report = ReportDraftSchema.parse(normalizeReportDraft({
+      title: "开源",
+      events: ["坊市商路重新开张，库房渐有进项。", "外务堂往来频繁，威胁也随声望暗增。"],
+      executiveSummary: "本年财路渐通，但仍需留意外部窥伺。"
+    }));
+
+    expect(report.title).toBe("开源施行年报");
   });
 });

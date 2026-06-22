@@ -4,7 +4,7 @@ import { zodTextFormat } from "openai/helpers/zod";
 import type { ParsedDecree, TurnFacts } from "../../src/domain/types";
 import { draftReportFallback, parseDecreeFallback } from "./fallback";
 import { buildDecreeUserPrompt, buildReportUserPrompt, DECREE_SYSTEM_PROMPT, REPORT_SYSTEM_PROMPT } from "./prompts";
-import { ParsedDecreeSchema, ReportDraftSchema, type ReportDraftOutput } from "./schemas";
+import { ParsedDecreeSchema, ReportDraftAISchema, ReportDraftSchema, type ReportDraftOutput } from "./schemas";
 
 function getClient() {
   const apiKey = getProviderConfig().apiKey;
@@ -108,8 +108,12 @@ function normalizeParsedDecree(value: unknown) {
   return draft;
 }
 
-function normalizeReportDraft(value: unknown) {
+export function normalizeReportDraft(value: unknown) {
   const draft = { ...(value as Record<string, unknown>) };
+  if (typeof draft.title === "string") {
+    const title = draft.title.trim();
+    draft.title = Array.from(title).length >= 4 ? title : `${title || "宗门"}施行年报`;
+  }
   if (Array.isArray(draft.events)) {
     draft.events = draft.events.map((event) => {
       if (typeof event === "string") return event;
@@ -194,9 +198,9 @@ export async function draftReportWithAI(facts: TurnFacts) {
       { role: "user", content: buildReportUserPrompt(facts) }
     ],
     text: {
-      format: zodTextFormat(ReportDraftSchema, "report_draft")
+      format: zodTextFormat(ReportDraftAISchema, "report_draft")
     }
   });
 
-  return ReportDraftSchema.parse(response.output_parsed);
+  return ReportDraftSchema.parse(normalizeReportDraft(response.output_parsed));
 }
